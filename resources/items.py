@@ -4,20 +4,21 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 
 from db import items
+from schemas import ItemSchema,UpdateItemSchema
 
 blp = Blueprint("Items", __name__, description="Operations on items")
 
 
 @blp.route("/item/<string:item_id>")
-class GetItem(MethodView):
+class Item(MethodView):
+    @blp.response(200, ItemSchema)
     def get(self, item_id):
         try:
             return items[item_id]
         except KeyError:
             abort(404, message="Item not found.")
 
-@blp.route("/item/<string:item_id>")
-class DeleteItem(MethodView):
+
     def delete(self, item_id):
         try:
             del items[item_id]
@@ -27,15 +28,10 @@ class DeleteItem(MethodView):
 
 
 
-@blp.route("/item/<string:item_id>")
-class UpdateItem(MethodView):
-    def put(self, item_id):
-        item_data = request.get_json()
-        if "price" not in item_data or "name" not in item_data:
-            abort(
-                400,
-                message="Bad request. Ensure 'price', and 'name' are included in the JSON payload.",
-            )
+    @blp.arguments(UpdateItemSchema)
+    @blp.response(200, ItemSchema)
+    def put(self, item_data, item_id):
+        
         try:
             item = items[item_id]
 
@@ -48,31 +44,22 @@ class UpdateItem(MethodView):
 
 
 @blp.route("/item")
-class GetAllItemList(MethodView):
+class ItemList(MethodView):
+    @blp.response(200, ItemSchema(many=True))
     def get(self):
-        return {"items": list(items.values())}
+        return items.values()
 
 
 
-@blp.route("/item")
-class CreateItem(MethodView):
-    def post(self):
-        item_data = request.get_json()
-        if (
-            "price" not in item_data
-            or "store_id" not in item_data
-            or "name" not in item_data
-        ):
-            abort(
-                400,
-                message="Bad request. Ensure 'price', 'store_id', and 'name' are included in the JSON payload.",
-            )
+    @blp.arguments(ItemSchema)
+    @blp.response(201, ItemSchema)
+    def post(self,item_data):
         for item in items.values():
             if (
                 item_data["name"] == item["name"]
                 and item_data["store_id"] == item["store_id"]
             ):
-                abort(400, message=f"Item already exists.")
+                abort(400, message= "Item already exists.")
 
         item_id = uuid.uuid4().hex
         item = {**item_data, "id": item_id}
