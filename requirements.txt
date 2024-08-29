@@ -9,3 +9,4 @@ python-dotenv
 flask-smorest
 sqlalchemy
 flask-sqlalchemy
+marshmallow
