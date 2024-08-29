@@ -41,6 +41,9 @@ class LinkTagsToItem(MethodView):
 
         item.tags.append(tag)
 
+        # if item.store.id != tag.store.id:
+        #     abort(400, message="Make sure item and tag belong to the same store before linking.")
+
         try:
             db.session.add(item)
             db.session.commit()
@@ -65,7 +68,7 @@ class LinkTagsToItem(MethodView):
         return {"message": "item removed from tag", "item": item, "tag": tag}
 
 @blp.route("/tag/<string:tag_id>")
-class TagsInStore(MethodView):
+class Tag(MethodView):
     @blp.response(200, TagSchema)
     def get(self, tag_id):
         tag = TagModel.query.get_or_404(tag_id)
