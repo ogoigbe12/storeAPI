@@ -10,3 +10,5 @@ flask-smorest
 sqlalchemy
 flask-sqlalchemy
 marshmallow
+flask-jwt-extended
+passlib
