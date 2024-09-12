@@ -3,6 +3,7 @@ import secrets
 from flask import Flask,jsonify
 from flask_smorest import Api
 from flask_jwt_extended import JWTManager
+from flask_migrate import Migrate
 
 from db import db
 from blocklist import BLOCKLIST
@@ -29,6 +30,7 @@ def create_app(db_url=None):
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["PROPAGATE_EXCEPTIONS"] = True
     db.init_app(app)
+    migrate = Migrate(app, db)
     api = Api(app)
 
     app.config["JWT_SECRET_KEY"] = 'secrets'
@@ -65,6 +67,16 @@ def create_app(db_url=None):
                     ),401
         )
     
+    @jwt.needs_fresh_token_loader
+    def token_not_fresh_callback(jwt_header,jwt_payload):
+        return (
+            jsonify({
+                "description": "The token is not fresh",
+                "error": "fresh_token_required"
+            }),
+            401
+        )
+    
     @jwt.unauthorized_loader
     def missing_token_callback(error):
         return (
@@ -72,8 +84,8 @@ def create_app(db_url=None):
                     ),401
         )
 
-    with app.app_context():
-        db.create_all()
+    # with app.app_context():
+    #     db.create_all()
 
     api.register_blueprint(ItemBlueprint)
     api.register_blueprint(StoreBlueprint)
