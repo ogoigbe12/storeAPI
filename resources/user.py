@@ -7,7 +7,7 @@ from flask_jwt_extended import create_access_token, create_refresh_token,get_jwt
 from db import db
 from blocklist import BLOCKLIST
 from models import UserModel
-from schemas import UserSchema
+from schemas import UserSchema, LoginSchema
 
 blp = Blueprint("User", "users", __name__, description="Operations on users")
 
@@ -31,7 +31,7 @@ blp = Blueprint("User", "users", __name__, description="Operations on users")
 
 @blp.route("/login")
 class UserLogin(MethodView):
-    @blp.arguments(UserSchema)
+    @blp.arguments(LoginSchema)
     def post(self, user_data):
         user = UserModel.query.filter(
             UserModel.username == user_data["username"]
